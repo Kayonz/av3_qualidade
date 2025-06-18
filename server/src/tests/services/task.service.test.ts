@@ -1,3 +1,4 @@
+import { create } from 'domain';
 import { InvalidTaskNameError } from '../../errors/task/InvalidTaskNameError';
 import { TaskNotFoundError } from '../../errors/task/TaskNotFoundError';
 import { TaskService } from '../../services/task.service';
@@ -248,4 +249,43 @@ describe('TaskService', () => {
             });
         });
     });
+
+    describe ('createTask', () =>{
+        it('deve deixar criar tarefas sem descricao',async () => {
+            
+            //Arrange (preparar)
+            const dadosValidos = {
+                title: 'Tarefa válida',
+                description: undefined,
+            };
+
+            const tarefaCriadaMock = {
+                
+                id: 1,
+                ...dadosValidos,
+                dueDate: null,
+                userId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+
+            (prisma.task.create as jest.Mock).mockResolvedValue(tarefaCriadaMock);
+
+            // Act (Agir)
+           const tarefa = await TaskService.createTask(userId, tarefaCriadaMock);
+
+            //Assert (Verificar)
+
+            expect(prisma.task.create).toHaveBeenCalledWith({
+                data: {
+                    ...dadosValidos,
+                    dueDate: null,
+                    priority: undefined,
+                    userId,
+                },
+            });
+            expect(tarefa).toEqual(tarefaCriadaMock);
+        })
+    })
 });
