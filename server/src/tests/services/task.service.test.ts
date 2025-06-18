@@ -3,6 +3,8 @@ import { InvalidTaskNameError } from '../../errors/task/InvalidTaskNameError';
 import { TaskNotFoundError } from '../../errors/task/TaskNotFoundError';
 import { TaskService } from '../../services/task.service';
 import { prisma } from '../../utils/prisma';
+import { title } from 'process';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 jest.mock('../../utils/prisma', () => ({
     prisma: {
@@ -250,6 +252,11 @@ describe('TaskService', () => {
         });
     });
 
+
+
+
+
+    //testes unitários do vitor
     describe ('createTask', () =>{
         it('deve deixar criar tarefas sem descricao',async () => {
             
@@ -276,7 +283,6 @@ describe('TaskService', () => {
            const tarefa = await TaskService.createTask(userId, tarefaCriadaMock);
 
             //Assert (Verificar)
-
             expect(prisma.task.create).toHaveBeenCalledWith({
                 data: {
                     ...dadosValidos,
@@ -288,4 +294,25 @@ describe('TaskService', () => {
             expect(tarefa).toEqual(tarefaCriadaMock);
         })
     })
+
+    describe('deleteTask', () => {
+        it('Deve lançar TaskNotFoundError se tentar deletar uma tarefa inexistente', async () => {
+          // Arrange
+          const prismaError = new PrismaClientKnownRequestError(
+            'Error message',
+            {
+            code: 'P2025',
+            clientVersion: '2.30.0'  // Pode ser a versão que você quiser
+            }
+          );
+      
+          (prisma.task.delete as jest.Mock).mockRejectedValue(prismaError);
+      
+          // Act
+          const promise = TaskService.deleteTask(userId, 1);
+      
+          // Assert
+          await expect(promise).rejects.toBeInstanceOf(TaskNotFoundError);
+        });
+      });
 });

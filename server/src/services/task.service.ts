@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { InvalidTaskNameError } from '../errors/task/InvalidTaskNameError';
 import { TaskNotFoundError } from '../errors/task/TaskNotFoundError';
 import { prisma } from '../utils/prisma';
@@ -82,8 +83,16 @@ export class TaskService {
     }
 
     static async deleteTask(userId: number, id: number) {
-        await prisma.task.delete({
-            where: { id, userId },
-        });
+        try{
+            await prisma.task.delete({
+                where: { id, userId },
+            });
+        }    
+        catch (error: any) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+              throw new TaskNotFoundError();
+            }
+            throw error;
+        }
     }
 }
