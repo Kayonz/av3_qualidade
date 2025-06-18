@@ -45,3 +45,7 @@ Then('a tarefa {string} deve aparecer na lista de tarefas', (title: string) => {
     cy.url().should('include', '/tasks');
     cy.contains(title).should('be.visible');
 });
+
+Then('deve aparecer uma mensagem de erro informando que o título da tarefa é inválido', () => {
+    cy.contains('Título da tarefa inválido').should('be.visible');
+});

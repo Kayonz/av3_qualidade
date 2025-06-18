@@ -14,3 +14,17 @@ Feature: Criação de tarefas
     And seleciona a prioridade "alta"
     And envia o formulário de criação
     Then a tarefa "Entregar trabalho final de QTSW" deve aparecer na lista de tarefas
+
+   Scenario: Falha ao criar tarefa com título iniciando com número
+    When preenche o título "1 tarefa inválida"
+    And preenche a descrição "Descrição qualquer"
+    And seleciona a prioridade "baixa"
+    And envia o formulário de criação
+    Then deve aparecer uma mensagem de erro informando que o título da tarefa é inválido
+
+  Scenario: Criação de tarefas com asteristicos
+  When preenche o título "*****TESTE*****"
+  And preenche a descrição "*********************************"
+  And envia o formulário de criação
+  Then a tarefa "*****TESTE*****" deve aparecer na lista de tarefas
+
