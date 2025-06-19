@@ -315,19 +315,28 @@ describe('TaskService', () => {
           await expect(promise).rejects.toBeInstanceOf(TaskNotFoundError);
         });
       });
-      
+
       describe('TaskService - testes simples', () => {
         const userId = 1;
       
         it('deve criar tarefa com título válido', async () => {
           const data = { title: 'Tarefa nova' };
-          const mockTask = { id: 1, ...data, userId, dueDate: null, priority: undefined };
-          (prisma.task.create as jest.Mock).mockResolvedValue(mockTask);
+          const tarefaCriadaMock = {
+                
+                id: 1,
+                ...data,
+                dueDate: null,
+                userId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+          (prisma.task.create as jest.Mock).mockResolvedValue(tarefaCriadaMock);
       
           const result = await TaskService.createTask(userId, data);
       
           expect(prisma.task.create).toHaveBeenCalled();
-          expect(result).toEqual(mockTask);
+          expect(result).toEqual(tarefaCriadaMock);
         });
       
         it('deve lançar erro se título começar com número', async () => {
@@ -338,13 +347,22 @@ describe('TaskService', () => {
       
         it('deve retornar lista de tarefas filtradas', async () => {
           const filters = { completed: 'true', priority: 'high' };
-          const mockTasks = [{ id: 1, title: 'Tarefa 1', userId, completed: true, priority: 'high' }];
-          (prisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks);
+          const tarefaCriadaMock = {
+                
+            id: 1,
+            ...filters,
+            dueDate: null,
+            userId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+
+          (prisma.task.findMany as jest.Mock).mockResolvedValue(tarefaCriadaMock);
       
           const result = await TaskService.getTasks(userId, filters);
       
           expect(prisma.task.findMany).toHaveBeenCalled();
-          expect(result).toEqual(mockTasks);
+          expect(result).toEqual(tarefaCriadaMock);
         });
       
         it('deve retornar todas as tarefas sem filtros', async () => {
