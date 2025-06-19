@@ -68,18 +68,25 @@ export class TaskService {
             priority?: string;
         },
     ) {
-        const updatedTask = await prisma.task.update({
-            where: { id, userId },
-            data: {
-                title: data.title,
-                description: data.description,
-                completed: data.completed,
-                dueDate: data.dueDate ? new Date(data.dueDate) : null,
-                priority: data.priority,
-            },
-        });
-
-        return updatedTask;
+        try {
+            const updatedTask = await prisma.task.update({
+                where: { id, userId },
+                data: {
+                    title: data.title,
+                    description: data.description,
+                    completed: data.completed,
+                    dueDate: data.dueDate ? new Date(data.dueDate) : null,
+                    priority: data.priority,
+                },
+            });
+    
+            return updatedTask;
+        } catch (error: any) {
+            if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+                throw new TaskNotFoundError();
+            }
+            throw error;
+        }
     }
 
     static async deleteTask(userId: number, id: number) {

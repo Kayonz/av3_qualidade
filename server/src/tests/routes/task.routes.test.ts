@@ -60,3 +60,38 @@ describe('TaskController', () => {
         });
     });
 });
+
+describe('GET /api/tasks', () => {
+    it('deve retornar lista de tarefas do usuário', async () => {
+      await prisma.task.createMany({
+        data: [
+          { title: 'Tarefa 1', userId: testUser.id, completed: false, priority: 'low' },
+          { title: 'Tarefa 2', userId: testUser.id, completed: true, priority: 'high' },
+        ],
+      }); //mocka tarefas dentro do banco
+  
+      const response = await request(app).get('/api/tasks');//faz o get para verificar as tarefas criadas
+  
+      expect(response.statusCode).toBe(StatusCodes.OK); // ve seu deu tudo certo com as tarefas criadas
+      expect(Array.isArray(response.body)).toBe(true); //retornar lista de tarefas ate a linha 82
+      expect(response.body.length).toBeGreaterThanOrEqual(2);
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: 'Tarefa 1' }),
+          expect.objectContaining({ title: 'Tarefa 2' }),
+        ]),
+      );
+    });
+  });
+  
+  describe('PUT /api/tasks/:id', () => {
+    it('deve retornar 404 ao tentar atualizar tarefa inexistente', async () => {
+        const response = await request(app)//faz a requisição na api (app.js)
+            .put('/api/tasks/999999')//faz o update na api na tarefa 999
+            .send({ title: 'Tentativa de update de tarefa inexistente' });//retorna o titulo de informando que a tarefa do id 999 é inexiste nessa bomba
+    
+        expect(response.status).toBe(StatusCodes.NOT_FOUND);//status code de não localizado
+        expect(response.body).toEqual({ message: 'Tarefa não encontrada' });//resposta esperada de tarefa não encontrada
+    });
+});
+  

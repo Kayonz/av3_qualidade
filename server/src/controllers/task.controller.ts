@@ -62,7 +62,6 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
     const userId = req.userId;
     if (!userId) {
         res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Não autorizado' });
-
         return;
     }
 
@@ -70,8 +69,12 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
         const updatedTask = await TaskService.updateTask(userId, parseInt(req.params.id), req.body);
         res.json(updatedTask);
     } catch (error) {
-        console.error('Erro ao atualizar tarefa:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erro no servidor' });
+        if (error instanceof TaskNotFoundError) {
+            res.status(StatusCodes.NOT_FOUND).json({ message: error.message });
+        } else {
+            console.error('Erro ao atualizar tarefa:', error);
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erro no servidor' });
+        }
     }
 };
 

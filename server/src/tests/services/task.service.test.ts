@@ -315,4 +315,81 @@ describe('TaskService', () => {
           await expect(promise).rejects.toBeInstanceOf(TaskNotFoundError);
         });
       });
+      
+      describe('TaskService - testes simples', () => {
+        const userId = 1;
+      
+        it('deve criar tarefa com título válido', async () => {
+          const data = { title: 'Tarefa nova' };
+          const mockTask = { id: 1, ...data, userId, dueDate: null, priority: undefined };
+          (prisma.task.create as jest.Mock).mockResolvedValue(mockTask);
+      
+          const result = await TaskService.createTask(userId, data);
+      
+          expect(prisma.task.create).toHaveBeenCalled();
+          expect(result).toEqual(mockTask);
+        });
+      
+        it('deve lançar erro se título começar com número', async () => {
+          const data = { title: '1 Tarefa inválida' };
+      
+          await expect(TaskService.createTask(userId, data)).rejects.toThrowError();
+        });
+      
+        it('deve retornar lista de tarefas filtradas', async () => {
+          const filters = { completed: 'true', priority: 'high' };
+          const mockTasks = [{ id: 1, title: 'Tarefa 1', userId, completed: true, priority: 'high' }];
+          (prisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks);
+      
+          const result = await TaskService.getTasks(userId, filters);
+      
+          expect(prisma.task.findMany).toHaveBeenCalled();
+          expect(result).toEqual(mockTasks);
+        });
+      
+        it('deve retornar todas as tarefas sem filtros', async () => {
+          const mockTasks = [{ id: 1, title: 'Tarefa 1', userId }];
+          (prisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks);
+      
+          const result = await TaskService.getTasks(userId, {});
+      
+          expect(prisma.task.findMany).toHaveBeenCalled();
+          expect(result).toEqual(mockTasks);
+        });
+      
+        it('deve retornar tarefa pelo ID', async () => {
+          const mockTask = { id: 1, title: 'Tarefa 1', userId };
+          (prisma.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
+      
+          const result = await TaskService.getTaskById(userId, 1);
+      
+          expect(prisma.task.findUnique).toHaveBeenCalled();
+          expect(result).toEqual(mockTask);
+        });
+      
+        it('deve lançar erro se tarefa não existir ao buscar por ID', async () => {
+          (prisma.task.findUnique as jest.Mock).mockResolvedValue(null);
+      
+          await expect(TaskService.getTaskById(userId, 999)).rejects.toThrowError();
+        });
+      
+        it('deve atualizar tarefa', async () => {
+          const updateData = { title: 'Atualizada' };
+          const mockTask = { id: 1, ...updateData, userId };
+          (prisma.task.update as jest.Mock).mockResolvedValue(mockTask);
+      
+          const result = await TaskService.updateTask(userId, 1, updateData);
+      
+          expect(prisma.task.update).toHaveBeenCalled();
+          expect(result).toEqual(mockTask);
+        });
+      
+        it('deve deletar tarefa', async () => {
+          (prisma.task.delete as jest.Mock).mockResolvedValue(undefined);
+      
+          await TaskService.deleteTask(userId, 1);
+      
+          expect(prisma.task.delete).toHaveBeenCalledWith({ where: { id: 1, userId } });
+        });
+      });
 });
